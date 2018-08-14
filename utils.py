@@ -52,5 +52,30 @@ def load_model(sess, ckpt):
             saver = tf.train.Saver()
             saver.restore(sess, ckpt_path)
 
+def metrics():
+    # Calculate MAP and MRR for comparing performance
+    MAP, MRR = 0, 0
+    for s1 in QA_pairs.keys():
+        p, AP = 0, 0
+        MRR_check = False
+
+        QA_pairs[s1] = sorted(QA_pairs[s1], key=lambda x: x[-1], reverse=True)
+
+        for idx, (s2, label, prob) in enumerate(QA_pairs[s1]):
+            if label == 1:
+                if not MRR_check:
+                    MRR += 1 / (idx + 1)
+                    MRR_check = True
+
+                p += 1
+                AP += p / (idx + 1)
+
+        AP /= p
+        MAP += AP
+
+    num_questions = len(QA_pairs.keys())
+    MAP /= num_questions
+    MRR /= num_questions
+
 
 

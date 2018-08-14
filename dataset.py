@@ -149,6 +149,7 @@ def get_iterator(data_file, vocab_table, batch_size,
         padding: Bool
             set True for cnn or attention based model to pad all samples into same length, must set seq_max_len
             set False for rnn model 
+        use_features: Bool, whether to use additional features.
         num_buckets: bucket according to sequence length
         shuffle_buffer_size: buffer size for shuffle
     Returns:
@@ -229,7 +230,7 @@ def get_iterator(data_file, vocab_table, batch_size,
             # ).prefetch(2*batch_size)
 
         batched_iter = batched_dataset.make_initializable_iterator()
-        s0_ids, s1_ids, target, s0_len, s1_len = batched_iter.get_next()
+        target, s0_ids, s1_ids, s0_len, s1_len = batched_iter.get_next()
 
     else:
         dataset = dataset.map(
@@ -264,7 +265,7 @@ def get_iterator(data_file, vocab_table, batch_size,
             buckets_batch_sizes = [batch_size] * (len(buckets_boundaries) + 1)
 
             batching_func = tf.contrib.data.bucket_by_sequence_length(
-                element_length_func=lambda target, s0, s1, s0_len, s1_len, f: (s0_len + s1_len) // 2,
+                element_length_func=lambda target, s0, s1, f, s0_len, s1_len: (s0_len + s1_len) // 2,
                 bucket_boundaries=buckets_boundaries,
                 bucket_batch_sizes=buckets_batch_sizes,
                 padded_shapes=(
@@ -290,7 +291,7 @@ def get_iterator(data_file, vocab_table, batch_size,
             )
             batched_dataset = dataset.apply(batching_func).prefetch(2 * batch_size)
         batched_iter = batched_dataset.make_initializable_iterator()
-        s0_ids, s1_ids, target, features, s0_len, s1_len = batched_iter.get_next()
+        target, s0_ids, s1_ids, features, s0_len, s1_len = batched_iter.get_next()
 
     return BatchedInput(
         initializer=batched_iter.initializer,
