@@ -42,7 +42,7 @@ class BCNN(BaseModel):
             kernel_size=w,
             padding="VALID",
             activation=tf.nn.tanh,  # origin paper use tanh
-            kernel_initializer=tf.contrib.layers.xavier_initializer_conv1d(),
+            kernel_initializer=tf.contrib.layers.xavier_initializer_conv2d(),
             kernel_regularizer=self.regularizer,
             bias_initializer=tf.constant_initializer(0.01),
         )
@@ -107,9 +107,9 @@ class BCNN(BaseModel):
         params = self.params
         sim_vec = []  # k * n similarity score, n is num_filters, k is num_layers
         for i, w in enumerate(map(int, params.filter_sizes.split(','))):
-            out1, out2 = self._cnn_block(
+            self.out1, self.out2 = self._cnn_block(
                 self.x1, self.x2, self.s1, self.s2, w, self.n, name="window-{}".format(w))
-            for r1, r2 in zip(out1, out2):
+            for r1, r2 in zip(self.out1, self.out2):
                 sim = self._sim(r1, r2, params.sim_method)  # (b,)
                 sim_vec.append(tf.expand_dims(sim, 1))  # [(b,1), (b,1)...]
         sims = tf.concat(sim_vec, axis=1)  # (b, k*n)

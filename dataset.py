@@ -206,28 +206,30 @@ def get_iterator(data_file, vocab_table, batch_size,
             )
             batched_dataset = dataset.apply(batching_func).prefetch(2*batch_size)
         else:
-            batching_func = tf.contrib.data.padded_batch_and_drop_remainder(
+            # for tf version < 1.10
+            # batching_func = tf.contrib.data.padded_batch_and_drop_remainder(
+            #     batch_size,
+            #     padded_shapes=(
+            #         tf.TensorShape([]),
+            #         tf.TensorShape([s0_pad_size]),
+            #         tf.TensorShape([s1_pad_size]),
+            #         tf.TensorShape([]), tf.TensorShape([])),
+            #     padding_values=(0, 0, 0, 0, 0)
+            # )
+            # batched_dataset = dataset.apply(batching_func).prefetch(2 * batch_size)
+
+            # Note tf.data default to include last smaller batch, it cause error.
+            # From tf version >= 1.10, we can use drop_remainder options
+            batched_dataset = dataset.padded_batch(
                 batch_size,
                 padded_shapes=(
                     tf.TensorShape([]),
                     tf.TensorShape([s0_pad_size]),
                     tf.TensorShape([s1_pad_size]),
                     tf.TensorShape([]), tf.TensorShape([])),
-                padding_values=(0, 0, 0, 0, 0)
-            )
-            batched_dataset = dataset.apply(batching_func).prefetch(2 * batch_size)
-
-            # Note tf.data default to include last smaller batch, it cause error.
-            # From tf version >= 1.10, we can use drop_remainder options
-            # batched_dataset = dataset.padded_batch(
-            #     batch_size,
-            #     padded_shapes=(
-            #         tf.TensorShape([s0_pad_size]),
-            #         tf.TensorShape([s1_pad_size]),
-            #         tf.TensorShape([]), tf.TensorShape([]), tf.TensorShape([])),
-            #         padding_values=(0, 0, 0, 0, 0)
-            #     drop_remainder=True
-            # ).prefetch(2*batch_size)
+                padding_values=(0, 0, 0, 0, 0),
+                drop_remainder=True
+            ).prefetch(2*batch_size)
 
         batched_iter = batched_dataset.make_initializable_iterator()
         target, s0_ids, s1_ids, s0_len, s1_len = batched_iter.get_next()
@@ -279,17 +281,18 @@ def get_iterator(data_file, vocab_table, batch_size,
             )
             batched_dataset = dataset.apply(batching_func).prefetch(2 * batch_size)
         else:
-            batching_func = tf.contrib.data.padded_batch_and_drop_remainder(
+            batched_dataset = dataset.padded_batch(
                 batch_size,
                 padded_shapes=(
                     tf.TensorShape([]),
                     tf.TensorShape([s0_pad_size]),
                     tf.TensorShape([s1_pad_size]),
-                    tf.TensorShape(None),
+                    tf.TensorShape([None]),
                     tf.TensorShape([]), tf.TensorShape([])),
-                padding_values=(0, 0, 0, 0, 0, 0)
-            )
-            batched_dataset = dataset.apply(batching_func).prefetch(2 * batch_size)
+                padding_values=(0, 0, 0, 0, 0, 0),
+                drop_remainder=True
+            ).prefetch(2 * batch_size)
+
         batched_iter = batched_dataset.make_initializable_iterator()
         target, s0_ids, s1_ids, features, s0_len, s1_len = batched_iter.get_next()
 

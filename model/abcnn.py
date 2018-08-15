@@ -169,7 +169,7 @@ class ABCNN(BCNN):
             w: Filter size
             n: Num filters
         Returns:
-            tuple of Tensor list, each element has same shape with input x1, x2
+            tuple of Tensor list, each element has shape (b, d)
         """
         out1, out2 = [], []  # Representation vector list of input x1, x2
         for i in range(n):
@@ -177,17 +177,17 @@ class ABCNN(BCNN):
                 if self.model_type == 1 or self.model_type == 3:
                     with tf.name_scope("attention_feauture_map"):
                         # Note in TensorFlow, the dimension is different from paper in order.
-                        f1, f2 = self.gen_attention_feature_map(x1, x2)  # (b, s1, d, 1)
+                        self.f1, self.f2 = self.gen_attention_feature_map(x1, x2)  # (b, s1, d, 1)
                         # Stack attention feature map with original embbeding input, add dim 4 chanel for stack
-                        x1 = tf.concat([x1, f1], axis=3)  # (b, s1, d, 2)
-                        x2 = tf.concat([x2, f2], axis=3)  # (b, s2, d, 2)
+                        x1 = tf.concat([x1, self.f1], axis=3)  # (b, s1, d, 2)
+                        x2 = tf.concat([x2, self.f2], axis=3)  # (b, s2, d, 2)
 
                 conv1 = self._conv(x=self._wide_conv_padding(x1, w), w=w)  # (b, s0+w-1, d, 1)
                 conv2 = self._conv(x=self._wide_conv_padding(x2, w), w=w)  # (b, s1+w-1, d, 1)
 
                 if self.model_type == 2 or self.model_type == 3:
-                    a = self.gen_attention_matrix(conv1, conv2)  # (s0+w-1, s1+w-1)
-                    attention_w1, attention_w2 = tf.reduce_sum(a, axis=2), tf.reduce_sum(a, axis=1)
+                    self.a = self.gen_attention_matrix(conv1, conv2)  # (s0+w-1, s1+w-1)
+                    attention_w1, attention_w2 = tf.reduce_sum(self.a, axis=2), tf.reduce_sum(self.a, axis=1)
                     pool1 = self._attention_base_pooling(x=conv1, w=w, s=s1, attention_weights=attention_w1)
                     pool2 = self._attention_base_pooling(x=conv2, w=w, s=s2, attention_weights=attention_w2)
                 else:
@@ -195,7 +195,6 @@ class ABCNN(BCNN):
                     pool2 = self._pooling(x=conv2, pool_size=w)  # (b, s1, d, 1)
                 all_pool1 = self._pooling(x=conv1, pool_size=s1+w-1)  # (b, 1, d, 1)
                 all_pool2 = self._pooling(x=conv2, pool_size=s2+w-1)  # (b, 1, d, 1)
-                print(all_pool1.get_shape())
                 out1.append(tf.squeeze(all_pool1, axis=[1, 3]))  # flatten to (b, d)
                 out2.append(tf.squeeze(all_pool2, axis=[1, 3]))
                 x1 = pool1  # w-pool output as input for next block
@@ -209,9 +208,9 @@ class ABCNN(BCNN):
         params = self.params
         sim_vec = []  # k * n similarity score, n is num_filters, k is num_layers
         for i, w in enumerate(map(int, params.filter_sizes.split(','))):
-            out1, out2 = self._cnn_block(
+            self.out1, self.out2 = self._cnn_block(
                 self.x1, self.x2, self.s1, self.s2, w, self.n, name="window-{}".format(w))
-            for r1, r2 in zip(out1, out2):
+            for r1, r2 in zip(self.out1, self.out2):
                 sim = self._sim(r1, r2, params.sim_method)  # (b,)
                 sim_vec.append(tf.expand_dims(sim, 1))  # [(b,1), (b,1)...]
         sims = tf.concat(sim_vec, axis=1)  # (b, k*n)
@@ -227,7 +226,7 @@ class ABCNN(BCNN):
             bias_initializer=tf.constant_initializer(0.1),
             name="softmax",
         )
-        print(logits.get_shape())
+
         return logits  # (k*n, 2)
 
 

@@ -65,7 +65,6 @@ class BaseModel(object):
                         raise ValueError("Unsupported optimizer %s" % params.optimizer)
                     train_vars = tf.trainable_variables()
                     gradients = tf.gradients(self.loss, train_vars)
-                    # gradients, _ = opt.compute_gradients(self.loss, train_vars)
                     if params.use_grad_clip:
                         gradients, grad_norm = tf.clip_by_global_norm(
                             gradients, params.grad_clip_norm)
@@ -90,7 +89,7 @@ class BaseModel(object):
             # cosine = tf.reduce_sum(tf.multiply(normalize_x, normalize_y), 1)
             sim = tf.div(
                 tf.reduce_sum(x*y, 1),
-                tf.sqrt(tf.reduce_sum(x*x, 1)) * tf.sqrt(tf.reduce_sum(y*y, 1)) + 1e-8,
+                tf.sqrt(tf.reduce_sum(x*x, 1)) * tf.sqrt(tf.reduce_sum(y*y, 1)) + 1e-6,
                 name="cosine_sim")
         elif method.lower() == "euclidean":
             sim = tf.sqrt(tf.reduce_sum(tf.square(x - y), 1), name="euclidean_sim")

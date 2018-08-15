@@ -7,7 +7,7 @@ I try best to write most elegant and effective model implementation.
 ## Prerequisites
 
  - Python 2.7
- - TensorFlow >= 1.8 
+ - TensorFlow >= 1.10 
 
 ## Datasets
 - AS task with [WikiQA](https://www.microsoft.com/en-us/research/publication/wikiqa-a-challenge-dataset-for-open-domain-question-answering/)

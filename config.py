@@ -6,7 +6,7 @@
 import tensorflow as tf
 
 # data params
-tf.flags.DEFINE_string("train_file", 'data/MSRP/train', "train file")
+tf.flags.DEFINE_string("train_file", 'data/MSRP/test', "train file")
 tf.flags.DEFINE_string("dev_file", 'data/MSRP/dev', "dev file")
 tf.flags.DEFINE_string("test_file", 'data/MSRP/test', "test file")
 tf.flags.DEFINE_string("vocab_file", 'data/MSRP/vocab', "vocab file")

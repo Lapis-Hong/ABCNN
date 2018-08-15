@@ -76,6 +76,7 @@ def create_or_load_embed(vocab_file, embed_file, vocab_size, embed_size, scope=N
         else:
             embedding = tf.get_variable(
                 "W", [vocab_size, embed_size],
-                initializer=tf.random_normal_initializer(0., embed_size ** -0.5))
-            # or tf.keras.initializers.he_uniform() or tf.random_uniform_initializer(-1, 1)
+                initializer=tf.random_uniform_initializer(-1, 1))
+            # tf.random_normal_initializer(0., embed_size ** -0.5)
+            # or tf.keras.initializers.he_uniform() or
     return embedding

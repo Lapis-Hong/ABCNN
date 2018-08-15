@@ -31,11 +31,20 @@ def train():
             sess.run(iterator.initializer)
             while True:
                 try:
+                    # x1, x2 = sess.run([model.x1, model.x2])
+                    # print(x1)
                     _, loss = model.train(sess)
-                    logits = sess.run(model.logits)
-                    print(logits)
-                    sim = sess.run(model.features)
-                    print(sim)
+
+                    # logits = sess.run(model.logits)
+                    # print(logits)
+                    # out1, out2, sim = sess.run([model.out1, model.out2, model.features])
+                    # # print(out1[0])
+                    # # print(out2[0])
+                    # f1, f2, a = sess.run([model.f1, model.f2, model.a])
+                    # print(f1)
+                    # print(f2)
+                    # print(sim)
+                    # print(a)
                     step += 1
                     # show train batch metrics
                     if step % FLAGS.stats_per_steps == 0:
