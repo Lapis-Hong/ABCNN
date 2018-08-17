@@ -16,64 +16,6 @@ class ABCNN(BCNN):
         super(ABCNN, self).__init__(iterator, params, mode)
 
     @staticmethod
-    def _wide_conv_padding(x, w):
-        """Zero padding to inputs for wide convolution,
-        padding w-1 for both sides  (s -> s+w-1)
-        Args:
-            x: input tensor (b, s, d, c)
-            w: filter size
-        Returns:
-            padded input (b, s+w-1, d, c)
-        """
-        return tf.pad(x, [[0, 0], [w - 1, w - 1], [0, 0], [0, 0]], name="wide_conv_pad")
-
-    def _conv(self, x, w):
-        """Convolution layers
-        Args:
-            x: input tensor (b, s, d, c)
-            w: filter size
-        """
-        d = x.get_shape().as_list()[2]
-        conv = tf.layers.conv2d(
-            inputs=x,
-            filters=self.d,
-            kernel_size=(w, d),
-            padding="VALID",
-            activation=tf.nn.tanh,  # origin paper use tanh
-            kernel_initializer=tf.contrib.layers.xavier_initializer_conv2d(),
-            kernel_regularizer=self.regularizer,
-            bias_initializer=tf.constant_initializer(0.01),
-        )  # (b, s+w-1, 1, d)
-        conv = tf.transpose(conv, [0, 1, 3, 2], name="conv_trans")  # (b, s+w-1, d, 1)
-        print("conv_trans", conv.get_shape().as_list())
-        return conv
-
-    @staticmethod
-    def _pooling(x, pool_size, method="avg"):
-        """Pooling layer, include both w_pool and all_pool
-        Args:
-            x: Input tensor (b, s+w-1, d, c)
-            pool_size: pool_size, determine w_pool or all_pool
-            method: pooling method, `avg` or `max`, default to avg, as used in paper.
-        """
-        if method.lower() == "avg":
-            pool_func = tf.layers.average_pooling2d
-        elif method.lower() == "max":
-            pool_func = tf.layers.max_pooling2d
-        else:
-            raise ValueError("Invalid pooling type, expected `avg` or `max`, found {}".format(method))
-
-        pool = pool_func(
-            inputs=x,
-            pool_size=(pool_size, 1),
-            strides=1,
-            padding="VALID",
-            name="pool",
-        )
-        print("pool", pool.get_shape().as_list())
-        return pool
-
-    @staticmethod
     def _euclidean_distance_matrix(a, b):
         """Calculate two matrix vectors euclidean distance.
         Args:
@@ -202,32 +144,6 @@ class ABCNN(BCNN):
 
         return out1, out2
 
-    def _build_logits(self):
-        self.x1 = tf.expand_dims(self.x1, axis=-1)
-        self.x2 = tf.expand_dims(self.x2, axis=-1)
-        params = self.params
-        sim_vec = []  # k * n similarity score, n is num_filters, k is num_layers
-        for i, w in enumerate(map(int, params.filter_sizes.split(','))):
-            self.out1, self.out2 = self._cnn_block(
-                self.x1, self.x2, self.s1, self.s2, w, self.n, name="window-{}".format(w))
-            for r1, r2 in zip(self.out1, self.out2):
-                sim = self._sim(r1, r2, params.sim_method)  # (b,)
-                sim_vec.append(tf.expand_dims(sim, 1))  # [(b,1), (b,1)...]
-        sims = tf.concat(sim_vec, axis=1)  # (b, k*n)
-
-        with tf.name_scope("features"):
-            if self.features:
-                self.features = tf.concat([self.features, sims], axis=1, name="features")
-            else:
-                self.features = sims
-
-        logits = tf.layers.dense(
-            self.features, 2,
-            bias_initializer=tf.constant_initializer(0.1),
-            name="softmax",
-        )
-
-        return logits  # (k*n, 2)
 
 
 

@@ -21,6 +21,7 @@ def train():
         init_ops = [tf.global_variables_initializer(),
                     tf.local_variables_initializer(), tf.tables_initializer()]
         sess.run(init_ops)
+        tf.summary.FileWriter("summary", sess.graph)  # graph
 
         for epoch in range(FLAGS.max_epoch):
             step = 0
@@ -34,6 +35,10 @@ def train():
                     # x1, x2 = sess.run([model.x1, model.x2])
                     # print(x1)
                     _, loss = model.train(sess)
+                    if not os.path.exists(FLAGS.model_dir):
+                        os.mkdir(FLAGS.model_dir)
+                    save_path = os.path.join(FLAGS.model_dir, "model.ckpt")
+                    model.save(sess, save_path)
 
                     # logits = sess.run(model.logits)
                     # print(logits)

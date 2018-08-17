@@ -22,22 +22,20 @@ tf.flags.DEFINE_integer("shuffle_buffer_size", 10000, "Shuffle buffer size")
 
 # model params
 tf.flags.DEFINE_string("model_name", "bcnn", "mdoel name, `bcnn` or `abcnn`.")
-tf.flags.DEFINE_integer("model_type", 3, "model type, 1 for APCNN-1, 2 APCNN-2, 3 for APCNN-3")
+tf.flags.DEFINE_integer("model_type", 2, "model type, 1 for APCNN-1, 2 APCNN-2, 3 for APCNN-3")
 tf.flags.DEFINE_string("model_dir", "save", "model path")
-# common
+
 tf.flags.DEFINE_float("dropout", 0.8, "dropout keep prob [0.8]")
 tf.flags.DEFINE_integer("num_layers", 2, "num of hidden layers [2]")
 tf.flags.DEFINE_float("l2_reg", 0.004, "l2 regularization weight [0.004]")
-tf.flags.DEFINE_string("pooling_method", "avg", "pooling methods, `avg` or `max`.")
+tf.flags.DEFINE_string("pooling_method", "max", "pooling methods, `avg` or `max`.")
 tf.flags.DEFINE_string("sim_method", "cosine", "similarity metrics, `cosine` or `euclidean`.")
-# cnn
 tf.flags.DEFINE_integer("num_filters", 50, "num of conv filters [50]")
 tf.flags.DEFINE_string("filter_sizes", '2,3,4', "filter sizes [2,3,4]")
-# rnn
-tf.flags.DEFINE_integer("hidden_units", 100, "num of hidden units [100]")
+
 
 # training params
-tf.flags.DEFINE_integer("batch_size", 64, "train batch size [64]")
+tf.flags.DEFINE_integer("batch_size", 32, "train batch size [64]")
 tf.flags.DEFINE_integer("max_epoch", 50, "max epoch [50]")
 tf.flags.DEFINE_float("lr", 0.002, "init learning rate [adam: 0.002, sgd: 1.1]")
 tf.flags.DEFINE_integer("lr_decay_epoch", 3, "learning rate decay interval [3]")

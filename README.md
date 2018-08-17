@@ -19,8 +19,6 @@ I try best to write most elegant and effective model implementation.
 
 
 ## TODOs
-add ABLSTMs
-add metrics
 fix bugs
 
 ## Results

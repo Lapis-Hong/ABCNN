@@ -13,8 +13,7 @@ All model classes must inherit class `BaseModel` (defined in model.py)
 # use from model import TextCNN instead of from model.base_model import TextCNN
 from bcnn import BCNN
 from abcnn import ABCNN
-from abrnn import ABRNN
 
 # from model import *
-__all__ = ["BCNN", "ABCNN", "ABRNN"]
+__all__ = ["BCNN", "ABCNN"]
 

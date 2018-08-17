@@ -41,6 +41,9 @@ class BaseModel(object):
                 params.vocab_file, params.embed_file, params.vocab_size, params.embedding_dim)
             self.x1 = tf.nn.embedding_lookup(embeddings, self.iterator.s0)  # [batch_size, seq_length, embedding_size]
             self.x2 = tf.nn.embedding_lookup(embeddings, self.iterator.s1)
+            # Input format (b, s, d, 1)
+            self.x1 = tf.expand_dims(self.x1, axis=-1)
+            self.x2 = tf.expand_dims(self.x2, axis=-1)
 
             self.logits = self._build_logits()  # (batch_size, num_classes)
             self.scores = tf.nn.softmax(self.logits, name="score")
@@ -63,15 +66,8 @@ class BaseModel(object):
                         opt = tf.train.MomentumOptimizer(params.lr, 0.9)
                     else:
                         raise ValueError("Unsupported optimizer %s" % params.optimizer)
-                    train_vars = tf.trainable_variables()
-                    gradients = tf.gradients(self.loss, train_vars)
-                    if params.use_grad_clip:
-                        gradients, grad_norm = tf.clip_by_global_norm(
-                            gradients, params.grad_clip_norm)
-
                     self.global_step = tf.Variable(0, trainable=False)
-                    self.update = opt.apply_gradients(
-                        zip(gradients, train_vars), global_step=self.global_step)
+                    self.update = opt.minimize(self.loss, global_step=self.global_step)
 
     @staticmethod
     def _sim(x, y, method="cosine"):
